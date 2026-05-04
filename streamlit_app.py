@@ -33,7 +33,7 @@ def expansion_manual(
     matrix: NDArray[np.uint8],
     out_min: int,
     out_max: int
-) -> Tuple[NDArray[np.uint8], float, float, int | float, int | float]:
+) -> Tuple[NDArray[np.uint8], float, float, int | float, int | float, pd.DataFrame]:
     """Optimizado mediante LUT (Look-Up Table)"""
     i_min: int | float = np.min(matrix)
     i_max: int | float = np.max(matrix)
@@ -51,7 +51,18 @@ def expansion_manual(
 
     # Transformar la imagen completa usando la tabla como índice
     res: NDArray[np.uint8] = lut[matrix.astype(np.uint8)]
-    return res, m, b, i_min, i_max
+
+    original_histograma, _ = np.histogram(matrix.flatten(), bins=256, range=[0, 256])
+    output_histograma, _ = np.histogram(res.flatten(), bins=256, range=[0, 256])
+
+    df_proc = pd.DataFrame({
+        "Intensidad Original": np.arange(256),
+        "Cantidad Original": original_histograma,
+        "Cantidad Resultado": output_histograma,
+        f"Intensidad Resultado {np.round(m,4)}x + b": lut,
+
+    })
+    return res, m, b, i_min, i_max, df_proc
 
 def ecualizacion_manual(
     matrix: NDArray[np.uint8]
@@ -139,7 +150,7 @@ if uploaded_file:
         min_dest, max_dest = st.slider("Rango de salida deseado:", 0, 255, (0, 255))
         
         if st.button("Procesar Expansión"):
-            img_res, m, b, i_min, i_max = expansion_manual(img_act, min_dest, max_dest)
+            img_res, m, b, i_min, i_max, df_proc = expansion_manual(img_act, min_dest, max_dest)
             
             with st.container(border=True):
                 st.markdown("### 📊 Desglose Matemático (LUT)")
@@ -153,6 +164,7 @@ if uploaded_file:
                 * **Rango Original:** [{i_min}, {i_max}] -> **Rango Destino:** [{min_dest}, {max_dest}]
                 """)
                 st.latex(r"y = %.4f \cdot x + (%.4f)" % (m, b))
+                st.dataframe(df_proc)
 
     else:
         st.subheader("⚙️ Configuración: Ecualización")
@@ -190,5 +202,46 @@ if uploaded_file:
             hist_res_data, _ = np.histogram(img_res.ravel(), bins=256, range=[0,256])
             df_hr = pd.DataFrame({'Tono': range(256), 'Frecuencia': hist_res_data})
             st.dataframe(df_hr[df_hr['Frecuencia'] > 0], height=150)
+
+        # PASO 5: Comparador
+        st.divider()
+        col_com1, col_com2 = st.columns(2)
+
+        with col_com1:
+            st.subheader("Original")
+            st.image(img_act, caption="Imagen Original", width=300)
+            fig_orig, ax_orig = plt.subplots(figsize=(5, 3))
+            ax_orig.hist(img_act.ravel(), bins=256, color='blue', range=[0, 256])
+            st.pyplot(fig_orig)
+            plt.close(fig_orig)
+
+        with col_com2:
+            st.subheader("Resultado Final")
+            st.image(img_res, caption="Imagen Resultado", width=300)
+            fig_res, ax_res = plt.subplots(figsize=(5, 3))
+            ax_res.hist(img_res.ravel(), bins=256, color='red', range=[0, 256])
+            st.pyplot(fig_res)
+            plt.close(fig_res)
+
+        #PASO 6: Comparador de histogramas
+        st.subheader("Comparación de Histogramas")
+
+        fig, ax = plt.subplots(figsize=(8, 4))
+
+        # Histograma Original (Azul)
+        ax.hist(img_act.ravel(), bins=256, range=[0, 256], color='blue', alpha=0.5, label='Original')
+
+        # Histograma Resultado (Rojo)
+        ax.hist(img_res.ravel(), bins=256, range=[0, 256], color='red', alpha=0.5, label='Resultado')
+
+        # Configuración de la gráfica
+        ax.set_title("Superposición de Histogramas")
+        ax.set_xlabel("Intensidad de Píxel")
+        ax.set_ylabel("Frecuencia")
+        ax.legend(loc='upper right')  # Añade la leyenda para distinguir los colores
+
+        st.pyplot(fig)
+        plt.close(fig)
+
 else:
     st.info("👋 Por favor, carga una imagen para comenzar.")
