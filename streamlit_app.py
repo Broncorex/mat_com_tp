@@ -295,10 +295,10 @@ if uploaded_file:
     with col1:
         st.markdown('<div class="card">', unsafe_allow_html=True)
         st.caption("📥 Imagen Original")
-        st.image(img_act, caption=f"Resolución: {img_act.shape[1]}×{img_act.shape[0]} px", use_container_width=True)
+        st.image(img_act, caption=f"Resolución: {img_act.shape[1]}×{img_act.shape[0]} px", width='stretch')
         st.markdown(stat_badges(img_act), unsafe_allow_html=True)
         with st.expander("Ver matriz parcial (15×15)"):
-            st.dataframe(pd.DataFrame(img_act[:15, :15]), use_container_width=True)
+            st.dataframe(pd.DataFrame(img_act[:15, :15]), width='stretch')
         st.markdown('</div>', unsafe_allow_html=True)
 
     with col2:
@@ -308,7 +308,7 @@ if uploaded_file:
         h_d, _ = np.histogram(img_act.ravel(), bins=256, range=[0, 256])
         df_h = pd.DataFrame({'Tono': range(256), 'Frecuencia': h_d})
         with st.expander("Ver tabla de frecuencias"):
-            st.dataframe(df_h[df_h['Frecuencia'] > 0], use_container_width=True, height=200)
+            st.dataframe(df_h[df_h['Frecuencia'] > 0], width='stretch', height=200)
         st.markdown('</div>', unsafe_allow_html=True)
 
     st.divider()
@@ -377,7 +377,7 @@ if uploaded_file:
         st.markdown('</div>', unsafe_allow_html=True)
 
         with st.expander("📋 Tabla de mapeo completa (solo tonos presentes)"):
-            st.dataframe(df_proc[df_proc.iloc[:, 1] > 0], use_container_width=True, height=280)
+            st.dataframe(df_proc[df_proc.iloc[:, 1] > 0], width='stretch', height=280)
 
         # ── ANÁLISIS DE IMAGEN OUTPUT ─────────────────────────────────────────
         st.markdown('<div class="card-accent" style="margin-top:1.2rem;">', unsafe_allow_html=True)
@@ -385,7 +385,7 @@ if uploaded_file:
         out_col1, out_col2, out_col3 = st.columns([1, 1.4, 1], gap="medium")
 
         with out_col1:
-            st.image(img_res, caption="Imagen output", use_container_width=True)
+            st.image(img_res, caption="Imagen output", width='stretch')
             st.markdown(stat_badges(img_res), unsafe_allow_html=True)
 
         with out_col2:
@@ -396,7 +396,7 @@ if uploaded_file:
             df_out = pd.DataFrame({'Tono': range(256), 'n': h_out})
             st.caption("Tabla de frecuencias output")
             st.dataframe(df_out[df_out['n'] > 0].reset_index(drop=True),
-                         use_container_width=True, height=250)
+                         width='stretch', height=250)
         st.markdown('</div>', unsafe_allow_html=True)
 
         st.divider()
@@ -409,21 +409,21 @@ if uploaded_file:
         with col_r1:
             st.markdown('<div class="card">', unsafe_allow_html=True)
             st.caption("🔵 ORIGINAL")
-            st.image(img_act, use_container_width=True)
+            st.image(img_act, width='stretch')
             st.markdown(stat_badges(img_act), unsafe_allow_html=True)
             st.pyplot(plot_hist(img_act, color='#00d2ff', label='Original'))
             with st.expander("Matriz 15×15"):
-                st.dataframe(pd.DataFrame(img_act[:15, :15]), use_container_width=True)
+                st.dataframe(pd.DataFrame(img_act[:15, :15]), width='stretch')
             st.markdown('</div>', unsafe_allow_html=True)
 
         with col_r2:
             st.markdown('<div class="card">', unsafe_allow_html=True)
             st.caption("🟣 RESULTADO")
-            st.image(img_res, use_container_width=True)
+            st.image(img_res, width='stretch')
             st.markdown(stat_badges(img_res), unsafe_allow_html=True)
             st.pyplot(plot_hist(img_res, color='#7b2ff7', label='Resultado'))
             with st.expander("Matriz 15×15"):
-                st.dataframe(pd.DataFrame(img_res[:15, :15]), use_container_width=True)
+                st.dataframe(pd.DataFrame(img_res[:15, :15]), width='stretch')
             st.markdown('</div>', unsafe_allow_html=True)
 
         # ── SUPERPOSICIÓN ─────────────────────────────────────────────────────
