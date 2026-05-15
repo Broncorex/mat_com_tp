@@ -449,7 +449,15 @@ def convertir_a_gris(img_array: NDArray[np.uint8]) -> NDArray[np.uint8]:
 def expansion_manual(matrix, out_min, out_max):
     i_min, i_max = int(np.min(matrix)), int(np.max(matrix))
     if i_max == i_min:
-        return matrix.copy(), 1.0, 0.0, i_min, i_max, pd.DataFrame()
+        niveles = np.arange(256)
+        orig_hist, _ = np.histogram(matrix, bins=256, range=[0, 256])
+        df_proc = pd.DataFrame({
+            "Intensidad Original": niveles,
+            "Cantidad Original": orig_hist,
+            "Cantidad Resultado": orig_hist,
+            f"Mapeo y=1.0000x+0.0000": niveles,
+        })
+        return matrix.copy(), 1.0, 0.0, i_min, i_max, df_proc
     m = (out_max - out_min) / (i_max - i_min)
     b = out_min - m * i_min
     niveles = np.arange(256)
@@ -635,7 +643,9 @@ with col1:
 with col2:
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.caption("📈 Histograma de Intensidades")
-    st.pyplot(plot_hist(img_act, color='#00d2ff'))
+    _fig = plot_hist(img_act, color='#00d2ff')
+    st.pyplot(_fig)
+    plt.close(_fig)
     h_d, _ = np.histogram(img_act.ravel(), bins=256, range=[0, 256])
     df_h = pd.DataFrame({'Tono': range(256), 'Frecuencia': h_d})
     with st.expander("Ver tabla de frecuencias", expanded=True):
@@ -670,10 +680,16 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
+def _clear_results():
+    st.session_state.img_res  = None
+    st.session_state.df_proc  = None
+    st.session_state.params   = {}
+
 metodo = st.radio(
     "Seleccione algoritmo:",
     ["Expansión Lineal (y=mx+b)", "Ecualización Histograma"],
     horizontal=True,
+    on_change=_clear_results,
 )
 
 if "Expansión" in metodo:
@@ -763,7 +779,9 @@ if st.session_state.img_res is not None:
         st.markdown(stat_badges(img_res), unsafe_allow_html=True)
 
     with out_col2:
-        st.pyplot(plot_hist(img_res, color='#7b2ff7', label='Distribución output'))
+        _fig = plot_hist(img_res, color='#7b2ff7', label='Distribución output')
+        st.pyplot(_fig)
+        plt.close(_fig)
 
     with out_col3:
         h_out, _ = np.histogram(img_res.ravel(), bins=256, range=[0, 256])
@@ -785,7 +803,9 @@ if st.session_state.img_res is not None:
         st.caption("🔵 ORIGINAL")
         st.image(img_act, width='stretch')
         st.markdown(stat_badges(img_act), unsafe_allow_html=True)
-        st.pyplot(plot_hist(img_act, color='#00d2ff', label='Original'))
+        _fig = plot_hist(img_act, color='#00d2ff', label='Original')
+        st.pyplot(_fig)
+        plt.close(_fig)
         with st.expander("Matriz 32×32", expanded=True):
             st.dataframe(pd.DataFrame(img_act[:32, :32]), width='stretch')
         st.markdown('</div>', unsafe_allow_html=True)
@@ -795,7 +815,9 @@ if st.session_state.img_res is not None:
         st.caption("🟣 RESULTADO")
         st.image(img_res, width='stretch')
         st.markdown(stat_badges(img_res), unsafe_allow_html=True)
-        st.pyplot(plot_hist(img_res, color='#7b2ff7', label='Resultado'))
+        _fig = plot_hist(img_res, color='#7b2ff7', label='Resultado')
+        st.pyplot(_fig)
+        plt.close(_fig)
         with st.expander("Matriz 32×32", expanded=True):
             st.dataframe(pd.DataFrame(img_res[:32, :32]), width='stretch')
         st.markdown('</div>', unsafe_allow_html=True)
@@ -817,6 +839,7 @@ if st.session_state.img_res is not None:
                   labelcolor='#c9d1d9', fontsize=9)
     fig_sup.tight_layout()
     st.pyplot(fig_sup)
+    plt.close(fig_sup)
 
     # ── REINICIAR ─────────────────────────────────────────────────────────────
     st.divider()
