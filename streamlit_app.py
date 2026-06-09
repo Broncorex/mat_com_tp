@@ -564,8 +564,8 @@ st.markdown("""
 
 # ── CARGA DE IMAGEN ───────────────────────────────────────────────────────────
 uploaded_file = st.file_uploader(
-    "📂 Paso 1 — Sube tu imagen para comenzar (PNG / JPG)",
-    type=["png", "jpg", "jpeg"],
+    "📂 Paso 1 — Sube tu imagen para comenzar (JPG / JPEG)",
+    type=["jpg", "jpeg"],
     key=f"file_uploader_{st.session_state.uploader_counter}",
     on_change=_full_reset,
 )
@@ -577,7 +577,7 @@ if not uploaded_file:
     <div class="card" style="text-align:center; padding: 3rem;">
       <div style="font-size:3rem;">⬛</div>
       <p style="color:#8b949e; margin-top:1rem;">
-        Sube una imagen PNG o JPG usando el botón de arriba para comenzar el análisis.
+        Sube una imagen JPG o JPEG usando el botón de arriba para comenzar el análisis.
       </p>
     </div>
     """, unsafe_allow_html=True)
