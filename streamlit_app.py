@@ -543,10 +543,12 @@ def _full_reset():
     st.session_state.img_res   = None
     st.session_state.df_proc   = None
     st.session_state.params    = {}
+    st.session_state.metodo_radio = "Expansión Lineal (y=mx+b)"
 
 KEYS_DEFAULT = {
     "img_gris": None, "img_res": None,
     "df_proc": None,  "params": {},
+    "metodo_radio": "Expansión Lineal (y=mx+b)",
 }
 for k, v in KEYS_DEFAULT.items():
     if k not in st.session_state:
@@ -689,6 +691,7 @@ metodo = st.radio(
     "Seleccione algoritmo:",
     ["Expansión Lineal (y=mx+b)", "Ecualización Histograma"],
     horizontal=True,
+    key="metodo_radio",
     on_change=_clear_results,
 )
 
