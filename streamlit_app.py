@@ -696,22 +696,53 @@ metodo = st.radio(
 )
 
 if "Expansión" in metodo:
-    col_sl1, col_sl2 = st.columns([3, 1])
-    with col_sl1:
-        min_d, max_d = st.slider(
-            "Rango de salida deseado (valores mínimo y máximo de brillo en la imagen resultante):",
-            0, 255, (0, 255)
+    i_min_actual = int(img_act.min())
+    i_max_actual = int(img_act.max())
+
+    # La imagen ya ocupa todo el rango dinámico de 8 bits [0, 255] → no se puede expandir
+    if i_min_actual == 0 and i_max_actual == 255:
+        st.warning(
+            f"⚠️ La imagen ya ocupa **todo el rango dinámico de 8 bits [0, 255]**. "
+            "No es posible expandir su histograma. Prueba con **Ecualización de Histograma** en su lugar."
         )
-    with col_sl2:
-        st.metric("Amplitud salida", f"{max_d - min_d + 1} niveles")
-    if st.button("▶ PROCESAR — EXPANSIÓN LINEAL"):
-        res, m, b, imin, imax, df = expansion_manual(img_act, min_d, max_d)
-        st.session_state.img_res = res
-        st.session_state.df_proc = df
-        st.session_state.params  = {"t": "exp", "m": m, "b": b,
-                                    "imin": imin, "imax": imax,
-                                    "omin": min_d, "omax": max_d}
-        st.rerun()
+    else:
+        col_sl1, col_sl2 = st.columns([3, 1])
+        with col_sl1:
+            st.caption(f"Rango actual de la imagen: **[{i_min_actual}, {i_max_actual}]** — solo puedes expandir este rango.")
+            col_a, col_b = st.columns(2)
+            with col_a:
+                if i_min_actual > 0:
+                    min_d = st.slider(
+                        "Mínimo de salida (≤ mínimo actual)",
+                        min_value=0,
+                        max_value=i_min_actual,   # ← tope superior = mínimo de la imagen
+                        value=0,
+                    )
+                else:
+                    st.info("🔻 El mínimo ya es **0**: no se puede expandir hacia abajo.")
+                    min_d = 0
+            with col_b:
+                if i_max_actual < 255:
+                    max_d = st.slider(
+                        "Máximo de salida (≥ máximo actual)",
+                        min_value=i_max_actual,   # ← tope inferior = máximo de la imagen
+                        max_value=255,
+                        value=255,
+                    )
+                else:
+                    st.info("🔺 El máximo ya es **255**: no se puede expandir hacia arriba.")
+                    max_d = 255
+        with col_sl2:
+            st.metric("Amplitud salida", f"{max_d - min_d + 1} niveles")
+
+        if st.button("▶ PROCESAR — EXPANSIÓN LINEAL"):
+            res, m, b, imin, imax, df = expansion_manual(img_act, min_d, max_d)
+            st.session_state.img_res = res
+            st.session_state.df_proc = df
+            st.session_state.params  = {"t": "exp", "m": m, "b": b,
+                                        "imin": imin, "imax": imax,
+                                        "omin": min_d, "omax": max_d}
+            st.rerun()
 else:
     if st.button("▶ PROCESAR — ECUALIZACIÓN DE HISTOGRAMA"):
         res, df = ecualizacion_manual(img_act)
